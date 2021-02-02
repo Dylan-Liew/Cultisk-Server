@@ -7,6 +7,7 @@ class OAuth2User(db.Model):
     sub = db.Column(db.String(100), nullable=True, unique=True, primary_key=True)
     email = db.Column(db.String(100), nullable=True)
     credentials = db.Column(db.Text)
+    app_settings = db.Column(db.Text)
     token = db.Column(db.Text, default=None)
     app_sessions = db.relationship("AppSession", back_populates="oauth2_user")
     passwords = db.relationship("Password", back_populates="oauth2_user")

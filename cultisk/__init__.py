@@ -30,7 +30,9 @@ from cultisk.Models import AppSession
 from cultisk.Auth_api import api as auth_api
 from cultisk.Callbacks import api as callbacks
 from cultisk.PasswordManager_Api import api as password_manager_api
+from cultisk.Settings_api import api as settings_api
 
 api.add_namespace(auth_api)
 api.add_namespace(callbacks)
 api.add_namespace(password_manager_api)
+api.add_namespace(settings_api)
