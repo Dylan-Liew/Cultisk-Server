@@ -1,5 +1,8 @@
 from cultisk import db
+from cultisk.MI_model import SpamFilter
+import cultisk.Email_Retrieve as ER
 import uuid
+import pickle
 
 
 class OAuth2User(db.Model):
@@ -96,3 +99,62 @@ class Card(Entry):
         self.ccv = ccv
         self.expiry_year = expiry_year
         self.expiry_month = expiry_month
+
+
+class Main_Filter:
+
+    def __init__(self):
+        filename = 'efilter_model.sav'
+        self.spamEmail = {}
+        self.s_list = []
+        with open(filename, 'rb') as p:
+            efilter_from_pickle = pickle.load(p)
+        self.efilter_from_pickle = efilter_from_pickle
+
+        p_output = open('Whitelist.txt', 'r')
+        for element in p_output.readlines():
+            self.s_list.append(element.strip())
+        p_output.close()
+
+    # NOTE:save the new spam message into SMSSpamCollection file
+
+    def filter(self, message):
+        return self.efilter_from_pickle.classify(message)
+
+    # NOTE:does NOT save the new spam message into SMSSpamCollection file
+    def filter_test(self,message):
+        result = self.efilter_from_pickle.classify_test_set(message)
+        return result
+
+    def verify(self):
+        self.efilter_from_pickle.testing_accuracy()
+
+    #
+    # def full_code(self,li=None):
+    #     test = ER.getEmails(li)
+    #     # prints out the messages
+    #     count = 1
+    #     new_test = {}
+    #     for i in test:
+    #         result = self.filter_test(test[i][2])
+    #         # print("MessageID: " + str(i))
+    #         if result == 'spam':
+    #             print("Subject:", test[i][0])
+    #             print("Sender:", test[i][1])
+    #             print("Body:", test[i][2])
+    #             print("Result:", result)
+    #             print('Message: ' + str(count))
+    #             print('========================================\n')
+    #             ER.trash_message(i)
+    #             new_test[i] = test[i]
+    #         count += 1
+    #     self.untrash(new_test)
+    #
+    # def getsenlist(self):
+    #     que = input("Do you want to add any email addresses not to be marked as spam? (y/n):")
+    #     while que.lower() == 'y':
+    #         em = input("Enter emails address not to be marked as spam: ")
+    #         self.s_list.append(em)
+    #         que = input("Do you want to add any more emails (y/n): ")
+    #     return self.s_list
+    #

@@ -10,6 +10,28 @@ from cultisk.schema import PasswordSchema, CardSchema
 api = Namespace("password-manager", description="Auth related")
 
 
+@api.route("/data/")
+class GetAll(Resource):
+
+    @openid_required
+    def get(self):
+        user_identifier = get_openid_identity()
+        passwords = Password.query.filter_by(oauth2_user_sub=user_identifier, deleted=False).all()
+        password_schema = PasswordSchema(many=True, exclude=["oauth2_user"])
+        response_passwords = password_schema.dump(passwords)
+        cards = Card.query.filter_by(oauth2_user_sub=user_identifier, deleted=False).all()
+        card_schema = CardSchema(many=True, exclude=["oauth2_user"])
+        response_cards = card_schema.dump(cards)
+        response_obj = {
+            "success": True,
+            "data": {
+                "cards": response_cards,
+                "passwords": response_passwords
+            }
+        }
+        return response_obj
+
+
 @api.route("/passwords/")
 class Passwords(Resource):
 
@@ -17,12 +39,12 @@ class Passwords(Resource):
     def get(self):
         user_identifier = get_openid_identity()
         passwords = Password.query.filter_by(oauth2_user_sub=user_identifier, deleted=False).all()
-        password_schema = PasswordSchema(many=True, exclude=["oauth2_user", "password", "favorite", "totp_secret"])
+        password_schema = PasswordSchema(many=True, exclude=["oauth2_user"])
         response_passwords = password_schema.dump(passwords)
         response_obj = {
             "success": True,
             "data": {
-                "entries": response_passwords
+                response_passwords
             }
         }
         return response_obj
@@ -83,27 +105,11 @@ class PasswordDetails(Resource):
             for x in post_data:
                 setattr(password_entry, x, post_data.get(x))
             db.session.commit()
-            response_obj = {
-                "success": True
-            }
-            return response_obj
-        else:
-            response_obj = {
-                "success": False,
-                "message": "No such Entry saved"
-            }
-            return make_response(jsonify(response_obj), 404)
+            updated_entry = Password.query.filter_by(uuid=uuid, oauth2_user_sub=user_identifier, deleted=False).first()
+            response_obj = {"success": True}
+            if updated_entry is not None:
+                response_obj["data"] = updated_entry
 
-    @openid_required
-    def delete(self, uuid):
-        user_identifier = get_openid_identity()
-        password_entry: Password = Password.query.filter_by(uuid=uuid, oauth2_user_sub=user_identifier, deleted=False).first()
-        if password_entry is not None:
-            password_entry.deleted = True
-            db.session.commit()
-            response_obj = {
-                "success": True,
-            }
             return response_obj
         else:
             response_obj = {
@@ -120,12 +126,12 @@ class Cards(Resource):
     def get(self):
         user_identifier = get_openid_identity()
         cards = Card.query.filter_by(oauth2_user_sub=user_identifier, deleted=False).all()
-        card_schema = CardSchema(many=True, exclude=["oauth2_user", "ccv", "expiry_year", "favorite", "expiry_month"])
+        card_schema = CardSchema(many=True, exclude=["oauth2_user"])
         response_cards = card_schema.dump(cards)
         response_obj = {
             "success": True,
             "data": {
-                "entries": response_cards
+                response_cards
             }
         }
         return response_obj
@@ -186,27 +192,13 @@ class CardDetails(Resource):
             for x in post_data:
                 setattr(card_entry, x, post_data.get(x))
             db.session.commit()
+            updated_entry = Card.query.filter_by(uuid=uuid, oauth2_user_sub=user_identifier, deleted=False).first()
             response_obj = {
                 "success": True
             }
-            return response_obj
-        else:
-            response_obj = {
-                "success": False,
-                "message": "No such Entry saved"
-            }
-            return make_response(jsonify(response_obj), 404)
+            if updated_entry is not None:
+                response_obj["data"] = updated_entry
 
-    @openid_required
-    def delete(self, uuid):
-        user_identifier = get_openid_identity()
-        card_entry: Card = Card.query.filter_by(uuid=uuid, oauth2_user_sub=user_identifier, deleted=False).first()
-        if card_entry is not None:
-            card_entry.deleted = True
-            db.session.commit()
-            response_obj = {
-                "success": True,
-            }
             return response_obj
         else:
             response_obj = {
@@ -224,8 +216,8 @@ class Deleted(Resource):
         user_identifier = get_openid_identity()
         cards = Card.query.filter_by(oauth2_user_sub=user_identifier, deleted=True).all()
         passwords = Password.query.filter_by(oauth2_user_sub=user_identifier, deleted=True).all()
-        password_schema = PasswordSchema(many=True, exclude=["oauth2_user", "password", "favorite", "totp_secret"])
-        card_schema = CardSchema(many=True, exclude=["oauth2_user", "ccv", "expiry_year", "favorite", "expiry_month"])
+        password_schema = PasswordSchema(many=True, exclude=["oauth2_user"])
+        card_schema = CardSchema(many=True, exclude=["oauth2_user"])
         response_cards = card_schema.dump(cards)
         response_passwords = password_schema.dump(passwords)
         response_obj = {
@@ -244,7 +236,7 @@ class DeletedDetail(Resource):
     @openid_required
     def get(self, uuid):
         user_identifier = get_openid_identity()
-        entry: Entry = Entry.query.filter_by(uuid=uuid).first()
+        entry: Entry = Entry.query.filter_by(uuid=uuid, deleted=True).first()
         o = None
         schema = None
         if entry.type == "card":
@@ -271,7 +263,7 @@ class DeletedDetail(Resource):
     @openid_required
     def delete(self, uuid):
         user_identifier = get_openid_identity()
-        entry: Entry = Entry.query.filter_by(uuid=uuid).first()
+        entry: Entry = Entry.query.filter_by(uuid=uuid, deleted=True).first()
         o = None
         if entry.type == "card":
             o = Card
