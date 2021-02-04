@@ -14,13 +14,6 @@ db = SQLAlchemy(app)
 ma = Marshmallow(app)
 
 
-@app.after_request
-def apply_secure_headers(response):
-    response.headers["X-Frame-Options"] = "SAMEORIGIN"
-    response.headers["X-Content-Type-Options"] = "nosniff"
-    return response
-
-
 pagination = Pagination(app, db)
 
 api = Api(app, version="1.0", title="Cybernetic", doc="", add_specs=False)

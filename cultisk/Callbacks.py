@@ -7,7 +7,7 @@ from flask_restx import Namespace, Resource
 from requests import HTTPError
 
 from cultisk import db, Auth
-from cultisk.helper import get_google_auth
+from cultisk.helper import get_google_auth, refresh_g_access_token
 from cultisk.Models import AppSession, OAuth2User
 
 api = Namespace("callback", description="Auth related")
@@ -70,13 +70,20 @@ class AppAuthComplete(Resource):
         data = {"success": True}
         app_id = request.args.get("app_id")
         s: AppSession = AppSession.query.filter_by(uuid=app_id).first()
-        if s.oauth2_user.token is None:
+        if s is None:
+            data["success"] = False
+            data["authenticated"] = False
+            return data, 404
+        elif s.oauth2_user.token is None:
             data["success"] = False
             data["authenticated"] = False
             return data, 401
         else:
+            cred = s.oauth2_user.credentials
+            cred = json.loads(cred)
+            _, token = refresh_g_access_token(cred)
             data["authenticated"] = True
-            data["jwt"] = s.oauth2_user.token
+            data["jwt"] = token
             data["guser_id"] = s.oauth2_user.sub
             return data
 

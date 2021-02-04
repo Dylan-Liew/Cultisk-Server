@@ -11,7 +11,6 @@ class OAuth2User(db.Model):
     token = db.Column(db.Text, default=None)
     app_sessions = db.relationship("AppSession", back_populates="oauth2_user")
     passwords = db.relationship("Password", back_populates="oauth2_user")
-    notes = db.relationship("Note", back_populates="oauth2_user")
     cards = db.relationship("Card", back_populates="oauth2_user")
 
 
@@ -67,28 +66,6 @@ class Password(Entry):
         self.password = password
         self.totp_secret = totp_secret
         self.url = url
-
-
-class Note(Entry):
-    __tablename__ = 'note'
-
-    uuid = db.Column(db.String(36), db.ForeignKey('entry.uuid'), primary_key=True)
-    name = db.Column(db.Text)
-    oauth2_user_sub = db.Column(db.String(30), db.ForeignKey("oauth2_user.sub"), primary_key=True)
-    oauth2_user = db.relationship("OAuth2User", back_populates="notes")
-    content = db.Column(db.Text)
-
-    __mapper_args__ = {
-        'polymorphic_identity': 'note',
-    }
-
-    def __init__(self, oauth2_user_sub, name=None, content=None):
-        unique_id = str(uuid.uuid4())
-        super(Note, self).__init__(unique_id, "note")
-        self.oauth2_user_sub = oauth2_user_sub
-        self.uuid = unique_id
-        self.name = name
-        self.content = content
 
 
 class Card(Entry):

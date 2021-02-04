@@ -4,8 +4,8 @@ from marshmallow import ValidationError
 
 from cultisk import db, app, Auth
 from cultisk.helper import openid_required, get_openid_identity, get_google_auth
-from cultisk.Models import Password, Card, Note, Entry
-from cultisk.schema import PasswordSchema, CardSchema, NoteSchema
+from cultisk.Models import Password, Card, Entry
+from cultisk.schema import PasswordSchema, CardSchema
 
 api = Namespace("password-manager", description="Auth related")
 
@@ -216,128 +216,21 @@ class CardDetails(Resource):
             return make_response(jsonify(response_obj), 404)
 
 
-@api.route("/notes/")
-class Notes(Resource):
-
-    @openid_required
-    def get(self):
-        user_identifier = get_openid_identity()
-        notes = Note.query.filter_by(oauth2_user_sub=user_identifier, deleted=False).all()
-        note_schema = NoteSchema(many=True, exclude=["oauth2_user", "content", "favorite"])
-        response_notes = note_schema.dump(notes)
-        response_obj = {
-            "success": True,
-            "data": {
-                "entries": response_notes
-            }
-        }
-        return response_obj
-
-    @openid_required
-    def post(self):
-        user_identifier = get_openid_identity()
-        note_schema = NoteSchema()
-        post_data = request.json
-        try:
-            post_data = note_schema.load(post_data)
-        except ValidationError as e:
-            return {"success": False, "error": str(e)}
-        n = Note(oauth2_user_sub=user_identifier)
-        for x in post_data:
-            setattr(n, x, post_data.get(x))
-        db.session.add(n)
-        db.session.commit()
-        response_obj = {
-            "success": True
-        }
-        return response_obj
-
-
-@api.route("/note/<uuid>/")
-class NoteDetail(Resource):
-
-    @openid_required
-    def get(self, uuid):
-        user_identifier = get_openid_identity()
-        note_entry = Note.query.filter_by(uuid=uuid, oauth2_user_sub=user_identifier, deleted=False).first()
-        if note_entry is not None:
-            note_schema = NoteSchema(exclude=["oauth2_user"])
-            response_note_entry = note_schema.dump(note_entry)
-            response_obj = {
-                "success": True,
-                "data": response_note_entry
-            }
-            return response_obj
-        else:
-            response_obj = {
-                "success": False,
-                "message": "No such entry saved"
-            }
-            return make_response(jsonify(response_obj), 404)
-
-    @openid_required
-    def put(self, uuid):
-        user_identifier = get_openid_identity()
-        note_entry = Note.query.filter_by(uuid=uuid, oauth2_user_sub=user_identifier, deleted=False).first()
-        note_schema = NoteSchema(exclude=["oauth2_user"])
-        post_data = request.json
-        try:
-            post_data = note_schema.load(post_data, instance=note_entry, partial=True)
-        except ValidationError as e:
-            return {"success": False, "error": str(e)}
-        if note_entry is not None:
-            for x in post_data:
-                setattr(note_entry, x, post_data.get(x))
-            db.session.commit()
-            response_obj = {
-                "success": True
-            }
-            return response_obj
-        else:
-            response_obj = {
-                "success": False,
-                "message": "No such Entry saved"
-            }
-            return make_response(jsonify(response_obj), 404)
-
-    @openid_required
-    def delete(self, uuid):
-        user_identifier = get_openid_identity()
-        note_entry: Note = Note.query.filter_by(uuid=uuid, oauth2_user_sub=user_identifier, deleted=False).first()
-        if note_entry is not None:
-            note_entry.deleted = True
-            db.session.commit()
-            response_obj = {
-                "success": True,
-            }
-            return response_obj
-        else:
-            response_obj = {
-                "success": False,
-                "message": "No such Entry saved"
-            }
-            return make_response(jsonify(response_obj), 404)
-
-
 @api.route("/deleted/")
 class Deleted(Resource):
 
     @openid_required
     def get(self):
         user_identifier = get_openid_identity()
-        notes = Note.query.filter_by(oauth2_user_sub=user_identifier, deleted=True).all()
         cards = Card.query.filter_by(oauth2_user_sub=user_identifier, deleted=True).all()
         passwords = Password.query.filter_by(oauth2_user_sub=user_identifier, deleted=True).all()
-        note_schema = NoteSchema(many=True, exclude=["oauth2_user", "content", "favorite"])
         password_schema = PasswordSchema(many=True, exclude=["oauth2_user", "password", "favorite", "totp_secret"])
         card_schema = CardSchema(many=True, exclude=["oauth2_user", "ccv", "expiry_year", "favorite", "expiry_month"])
-        response_notes = note_schema.dump(notes)
         response_cards = card_schema.dump(cards)
         response_passwords = password_schema.dump(passwords)
         response_obj = {
             "success": True,
             "data": {
-                "notes": response_notes,
                 "cards": response_cards,
                 "passwords": response_passwords
             }
@@ -360,9 +253,6 @@ class DeletedDetail(Resource):
         elif entry.type == "password":
             o = Password
             schema = PasswordSchema(exclude=["oauth2_user"])
-        elif entry.type == "note":
-            o = Note
-            schema = NoteSchema(exclude=["oauth2_user"])
         entry = o.query.filter_by(uuid=uuid, oauth2_user_sub=user_identifier).first()
         if entry is not None:
             response_entry = schema.dump(entry)
@@ -387,8 +277,6 @@ class DeletedDetail(Resource):
             o = Card
         elif entry.type == "password":
             o = Password
-        elif entry.type == "note":
-            o = Note
         entry = o.query.filter_by(uuid=uuid, oauth2_user_sub=user_identifier).first()
         if entry is not None:
             db.session.delete(entry)
@@ -417,8 +305,6 @@ class DeletedRestore(Resource):
             o = Card
         elif entry.type == "password":
             o = Password
-        elif entry.type == "note":
-            o = Note
         entry = o.query.filter_by(uuid=uuid, oauth2_user_sub=user_identifier).first()
         if entry is not None:
             entry.deleted = False
