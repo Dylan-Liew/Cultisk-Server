@@ -14,6 +14,13 @@ db = SQLAlchemy(app)
 ma = Marshmallow(app)
 
 
+@app.after_request
+def apply_secure_headers(response):
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    return response
+
+
 pagination = Pagination(app, db)
 
 api = Api(app, version="1.0", title="Cybernetic", doc="", add_specs=False)
@@ -24,8 +31,10 @@ from cultisk.Auth_api import api as auth_api
 from cultisk.Callbacks import api as callbacks
 from cultisk.PasswordManager_Api import api as password_manager_api
 from cultisk.Settings_api import api as settings_api
+from cultisk.SpamFilter_Api import api as spam_filter_api
 
 api.add_namespace(auth_api)
 api.add_namespace(callbacks)
 api.add_namespace(password_manager_api)
 api.add_namespace(settings_api)
+api.add_namespace(spam_filter_api)
