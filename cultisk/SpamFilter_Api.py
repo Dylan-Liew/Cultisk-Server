@@ -76,7 +76,7 @@ class EmailDetail(Resource):
 
 
 @app.route("/spamfilter/whitelist/")
-class whitelist(Resource):
+class WhitelistApi(Resource):
 
     @openid_required
     def get(self):
