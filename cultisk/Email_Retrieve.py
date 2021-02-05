@@ -57,17 +57,17 @@ def return_sevice(user_identifier):
     cred = oauth2_user.credential
     cred = json.loads(cred)
     cred = Credentials(**cred)
-    service = build('gmail', 'v1', credentials=cred)
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
-        # else:
-        #     flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
-        #     creds = flow.run_local_server(port=0)
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
+            creds = flow.run_local_server(port=0)
 
             # Save the access token in token.pickle file for the next run
         with open('token.pickle', 'wb') as token:
             pickle.dump(creds, token)
+    service = build('gmail', 'v1', credentials=cred)
     return service
 
 
@@ -142,6 +142,7 @@ def get_one_email(user_id,messid):
     # request a list of all the messages
     service = return_sevice(user_id)
     message_list = []
+    m_dict={}
     # Get the message from its id
     msg = service.users().messages().get(userId='me', id=messid).execute()
     # msg2=service.users().messages().batchModify(userId='me',)
@@ -160,8 +161,9 @@ def get_one_email(user_id,messid):
     message_list.append(subject_val)
     message_list.append(sender_val)
     message_list.append(html.unescape(msg_body))
-
-    return message_list
+    message_list.append(messid)
+    m_dict[messid] = message_list
+    return m_dict
 
 # if __name__ == "__main__":
 #     return_sevice(u)

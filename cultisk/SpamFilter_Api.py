@@ -26,13 +26,13 @@ class MainFilter(Resource):
             result = Main_Filter.filter_test(test[i][2])
             # print("MessageID: " + str(i))
             if result == 'spam':
+                ER.trash_message(user_identifier, i)
                 print("Subject:", test[i][0])
                 print("Sender:", test[i][1])
                 print("Body:", test[i][2])
                 print("Result:", result)
                 print('Message: ' + str(count))
                 print('========================================\n')
-                ER.trash_message(user_identifier, i)
                 new_test[i] = test[i]
             count += 1
         # ER.trash_message(service)
@@ -42,7 +42,7 @@ class MainFilter(Resource):
                 "emails": new_test
             }
         }
-        return response_obj
+        return jsonify(response_obj)
 
 
 @api.route("/spamfilter/untrash/<messid>")
@@ -65,8 +65,9 @@ class EmailDetail(Resource):
     def post(self,messid):
         user_identifier = get_openid_identity()
         mail = ER.get_one_email(user_identifier,messid)
-        print("Body:" + str(mail[2]))
-        body = mail[2]
+        mail1 = mail[messid]
+        print("Body:" + str(mail1[2]))
+        body = mail1[2]
         response_obj = {
             "success": True,
             "data": body

@@ -1,6 +1,6 @@
 import json
 
-from flask import request, make_response, jsonify, url_for, session, redirect
+from flask import request, make_response, jsonify, url_for, session
 from flask_restx import Namespace, Resource
 from cultisk import db, url_serializer, app, Auth
 from cultisk.Models import AppSession
@@ -30,9 +30,9 @@ class Login(Resource):
                 session["app_id"] = identifier
                 session["device_hostname"] = device_hostname
                 session["os_version"] = os_version
-                return redirect(auth_url)
+                return {"success": True, "url": auth_url}
             else:
-                return "Please close the window and try again"
+                return {"success": False, "duplicate": True}
 
 
 @api.route("/refresh-token/")

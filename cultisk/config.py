@@ -8,7 +8,7 @@ class Auth:
              "https://www.googleapis.com/auth/gmail.modify", "https://www.googleapis.com/auth/userinfo.profile"]
     CLIENT_ID = "***REMOVED***"
     CLIENT_SECRET = "***REMOVED***"
-    REDIRECT_URI = "http://127.0.0.1:5000/callback/auth-callback"
+    REDIRECT_URI = "https://127.0.0.1:5000/callback/auth-callback"
     AUTH_URI = "https://accounts.google.com/o/oauth2/auth"
     TOKEN_URI = "https://accounts.google.com/o/oauth2/token"
     USER_INFO = "https://www.googleapis.com/userinfo/v2/me"
