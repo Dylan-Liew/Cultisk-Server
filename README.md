@@ -27,4 +27,4 @@ This guide assumes you are using Bit 64 version of Windows.
   
 * Clone the repo and navigate to project folder
 * Run `pip install -r requirements.txt` to install dependencies
-* Run `flask run --cert ./ssl.crt --key ./ssl.key` to start server
+* Run `flask run` to start server

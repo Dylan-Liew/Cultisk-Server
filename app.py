@@ -26,5 +26,4 @@ def db_drop():
 app.register_blueprint(db_commands)
 
 if __name__ == '__main__':
-    #context = ('ssl.crt', 'ssl.key')
-    app.run(debug=True)
+    app.run()

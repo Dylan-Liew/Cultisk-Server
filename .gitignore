@@ -7,3 +7,6 @@
 
 /__pycache__/
 /cultisk/__pycache__/
+
+# No virutal enviorment.
+venv

@@ -1,7 +1,7 @@
-from cultisk import db
-from cultisk.MI_model import SpamFilter
-import uuid
 import pickle
+
+from cultisk import db
+import uuid
 
 
 class OAuth2User(db.Model):
@@ -13,7 +13,6 @@ class OAuth2User(db.Model):
     token = db.Column(db.Text, default=None)
     app_sessions = db.relationship("AppSession", back_populates="oauth2_user")
     passwords = db.relationship("Password", back_populates="oauth2_user")
-    notes = db.relationship("Note", back_populates="oauth2_user")
     cards = db.relationship("Card", back_populates="oauth2_user")
 
 
@@ -31,6 +30,7 @@ class Entry(db.Model):
     __tablename__ = "entry"
 
     uuid = db.Column(db.String(36), primary_key=True)
+    name = db.Column(db.Text)
     type = db.Column(db.Text)
     favorite = db.Column(db.Boolean, default=False)
     deleted = db.Column(db.Boolean, default=False)
@@ -40,8 +40,9 @@ class Entry(db.Model):
         'polymorphic_on': type
     }
 
-    def __init__(self, unique_id, type):
+    def __init__(self, name, unique_id, type):
         self.type = type
+        self.name = name
         self.uuid = unique_id
 
 
@@ -60,9 +61,9 @@ class Password(Entry):
         'polymorphic_identity': 'password',
     }
 
-    def __init__(self, oauth2_user_sub, username=None, password=None, totp_secret=None, url=None):
+    def __init__(self, oauth2_user_sub, name=None, username=None, password=None, totp_secret=None, url=None):
         unique_id = str(uuid.uuid4())
-        super(Password, self).__init__(unique_id, "password")
+        super(Password, self).__init__(name, unique_id, "password")
         self.oauth2_user_sub = oauth2_user_sub
         self.uuid = unique_id
         self.username = username
@@ -71,33 +72,10 @@ class Password(Entry):
         self.url = url
 
 
-class Note(Entry):
-    __tablename__ = 'note'
-
-    uuid = db.Column(db.String(36), db.ForeignKey('entry.uuid'), primary_key=True)
-    name = db.Column(db.Text)
-    oauth2_user_sub = db.Column(db.String(30), db.ForeignKey("oauth2_user.sub"), primary_key=True)
-    oauth2_user = db.relationship("OAuth2User", back_populates="notes")
-    content = db.Column(db.Text)
-
-    __mapper_args__ = {
-        'polymorphic_identity': 'note',
-    }
-
-    def __init__(self, oauth2_user_sub, name=None, content=None):
-        unique_id = str(uuid.uuid4())
-        super(Note, self).__init__(unique_id, "note")
-        self.oauth2_user_sub = oauth2_user_sub
-        self.uuid = unique_id
-        self.name = name
-        self.content = content
-
-
 class Card(Entry):
     __tablename__ = 'card'
 
     uuid = db.Column(db.String(36), db.ForeignKey('entry.uuid'), primary_key=True)
-    name = db.Column(db.Text)
     brand = db.Column(db.Text)
     oauth2_user_sub = db.Column(db.String(30), db.ForeignKey("oauth2_user.sub"), primary_key=True)
     oauth2_user = db.relationship("OAuth2User", back_populates="cards")
@@ -112,9 +90,8 @@ class Card(Entry):
 
     def __init__(self, oauth2_user_sub, name=None, brand=None, number=None, ccv=None, expiry_month=None, expiry_year=None):
         unique_id = str(uuid.uuid4())
-        super(Card, self).__init__(unique_id, "card")
+        super(Card, self).__init__(name, unique_id, "card")
         self.oauth2_user_sub = oauth2_user_sub
-        self.name = name
         self.brand = brand
         self.uuid = unique_id
         self.number = number
@@ -123,7 +100,7 @@ class Card(Entry):
         self.expiry_month = expiry_month
 
 
-class Main_Filter:
+class MainFilter:
 
     def __init__(self):
         filename = 'efilter_model.sav'

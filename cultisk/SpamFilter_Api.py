@@ -1,13 +1,9 @@
-from flask import request, make_response, jsonify, url_for, session
 from flask_restx import Namespace, Resource
-from marshmallow import ValidationError
-import pickle
 
-from cultisk import db, app, Auth
-from cultisk.helper import openid_required, get_openid_identity, get_google_auth
-from cultisk.Models import Main_Filter
-from cultisk.MI_model import SpamFilter
 import cultisk.Email_Retrieve as ER
+from cultisk import app
+from cultisk.Models import MainFilter
+from cultisk.helper import openid_required, get_openid_identity
 
 api = Namespace("spam-filter", description="Email Filter")
 
@@ -23,7 +19,7 @@ class MainFilter(Resource):
         count = 1
         new_test = {}
         for i in test:
-            result = Main_Filter.filter_test(test[i][2])
+            result = MainFilter.filter(message=test[i][2])
             # print("MessageID: " + str(i))
             if result == 'spam':
                 ER.trash_message(user_identifier, i)
@@ -42,9 +38,11 @@ class MainFilter(Resource):
                 "emails": new_test
             }
         }
-        return jsonify(response_obj)
+        return response_obj
 
 
+# call the api to remove the email from spam folder
+# noinspection PyUnresolvedReferences
 @api.route("/spamfilter/untrash/<messid>")
 class Untrash(Resource):
 
@@ -58,7 +56,8 @@ class Untrash(Resource):
         return response_obj
 
 
-@app.route("/spamfilter/<messid>")
+# noinspection PyUnresolvedReferences
+@app.route("/spamfilter/<messid>/")
 class EmailDetail(Resource):
 
     @openid_required
