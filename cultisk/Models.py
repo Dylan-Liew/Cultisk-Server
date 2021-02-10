@@ -14,6 +14,7 @@ class OAuth2User(db.Model):
     app_sessions = db.relationship("AppSession", back_populates="oauth2_user")
     passwords = db.relationship("Password", back_populates="oauth2_user")
     cards = db.relationship("Card", back_populates="oauth2_user")
+    master_password_hash = db.Column(db.Text)
 
 
 class AppSession(db.Model):
@@ -88,7 +89,8 @@ class Card(Entry):
         'polymorphic_identity': 'card',
     }
 
-    def __init__(self, oauth2_user_sub, name=None, brand=None, number=None, ccv=None, expiry_month=None, expiry_year=None):
+    def __init__(self, oauth2_user_sub, name=None, brand=None, number=None, ccv=None, expiry_month=None,
+                 expiry_year=None):
         unique_id = str(uuid.uuid4())
         super(Card, self).__init__(name, unique_id, "card")
         self.oauth2_user_sub = oauth2_user_sub
@@ -121,7 +123,7 @@ class MainFilter:
         return self.efilter_from_pickle.classify(message)
 
     # NOTE:does NOT save the new spam message into SMSSpamCollection file
-    def filter_test(self,message):
+    def filter_test(self, message):
         result = self.efilter_from_pickle.classify_test_set(message)
         return result
 
