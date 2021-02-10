@@ -74,7 +74,7 @@ def return_sevice(user_identifier):
 def getEmails(user_id,non=None):
     # request a list of all the messages
     service = return_sevice(user_id)
-    results = service.users().messages().list(maxResults=50,userId='me', labelIds=['INBOX']).execute()
+    results = service.users().messages().list(maxResults=200,userId='me', labelIds=['INBOX']).execute()
     messages = results.get('messages', [])
     # messages is a list of dictionaries where each dictionary contains a message id.
     # iterate through all the messages
@@ -93,6 +93,7 @@ def getEmails(user_id,non=None):
         sender = [i['value'] for i in headers if i["name"] == "From"]
         msg_body = msg['snippet']
 
+
         # convert to strings
         subject_val = listToString(subject)
         sender_val = listToString(sender)
@@ -103,7 +104,7 @@ def getEmails(user_id,non=None):
             message_list.append(subject_val)
             message_list.append(sender_val)
             message_list.append(html.unescape(msg_body))
-
+            message_list.append(message['id'])
             m_dict[message['id']] = message_list
     return m_dict
 
