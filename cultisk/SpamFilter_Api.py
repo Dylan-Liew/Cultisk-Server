@@ -1,13 +1,9 @@
-from flask import request, make_response, jsonify, url_for, session
 from flask_restx import Namespace, Resource
-from marshmallow import ValidationError
-import pickle
 
-from cultisk import db, app, Auth
-from cultisk.helper import openid_required, get_openid_identity
-from cultisk.Models import MainFilter
-from cultisk.MI_model import SpamFilter
 import cultisk.Email_Retrieve as ER
+from cultisk import app
+from cultisk.Models import MainFilter
+from cultisk.helper import openid_required, get_openid_identity
 
 api = Namespace("spam-filter", description="Email Filter")
 
@@ -19,7 +15,12 @@ class MainFilter(Resource):
     def get(self):
         user_identifier = get_openid_identity()
         # service=ER.return_sevice(user_identifier)
-        test = ER.getEmails(user_identifier)
+        s_list=[]
+        p_output = open('Whitelist.txt', 'r')
+        for element in p_output.readlines():
+            s_list.append(element.strip())
+        p_output.close()
+        test = ER.getEmails(user_identifier, s_list)
         count = 1
         new_test = {}
         for i in test:
@@ -32,6 +33,7 @@ class MainFilter(Resource):
                 print("Body:", test[i][2])
                 print("Result:", result)
                 print('Message: ' + str(count))
+                print('MessageID (in case necessary):' + str(test[i][3]))
                 print('========================================\n')
                 new_test[i] = test[i]
             count += 1
