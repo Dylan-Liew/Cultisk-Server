@@ -15,7 +15,12 @@ class MainFilter(Resource):
     def get(self):
         user_identifier = get_openid_identity()
         # service=ER.return_sevice(user_identifier)
-        test = ER.getEmails(user_identifier)
+        s_list=[]
+        p_output = open('Whitelist.txt', 'r')
+        for element in p_output.readlines():
+            s_list.append(element.strip())
+        p_output.close()
+        test = ER.getEmails(user_identifier, s_list)
         count = 1
         new_test = {}
         for i in test:
@@ -28,6 +33,7 @@ class MainFilter(Resource):
                 print("Body:", test[i][2])
                 print("Result:", result)
                 print('Message: ' + str(count))
+                print('MessageID (in case necessary):' + str(test[i][3]))
                 print('========================================\n')
                 new_test[i] = test[i]
             count += 1
