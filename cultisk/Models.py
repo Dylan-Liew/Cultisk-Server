@@ -60,6 +60,7 @@ class Password(Entry):
     password = db.Column(db.Text)
     totp_secret = db.Column(db.Text, nullable=True, default=None)
     url = db.Column(db.Text, nullable=True, default=None)
+    note = db.Column(db.Text, nullable=True, default=None)
 
     __mapper_args__ = {
         'polymorphic_identity': 'password',
