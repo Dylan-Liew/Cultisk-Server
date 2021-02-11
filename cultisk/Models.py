@@ -14,15 +14,18 @@ class OAuth2User(db.Model):
     app_sessions = db.relationship("AppSession", back_populates="oauth2_user")
     passwords = db.relationship("Password", back_populates="oauth2_user")
     cards = db.relationship("Card", back_populates="oauth2_user")
-    master_password_hash = db.Column(db.Text)
+    master_password_hashed = db.Column(db.Text, nullable=True)
+    master_password_hash_salt = db.Column(db.Text, nullable=True)
+    protected_symmetric_key = db.Column(db.Text, nullable=True)
 
 
 class AppSession(db.Model):
     __tablename__ = "app_session"
     uuid = db.Column(db.String(36), unique=True, nullable=False, primary_key=True)
-    oauth2_user_sub = db.Column(db.String(30), db.ForeignKey("oauth2_user.sub"), primary_key=True)
+    oauth2_user_sub = db.Column(db.String(30), db.ForeignKey("oauth2_user.sub"), default=None)
     oauth2_user = db.relationship("OAuth2User", back_populates="app_sessions")
     active = db.Column(db.Boolean, default=True)
+    authenticated = db.Column(db.Boolean, default=False)
     os_version = db.Column(db.String(50), nullable=False)
     device_hostname = db.Column(db.Text, nullable=False)
 

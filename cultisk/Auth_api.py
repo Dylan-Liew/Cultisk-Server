@@ -26,10 +26,11 @@ class Login(Resource):
             if check_dup is None:
                 google = get_google_auth()
                 auth_url, state = google.authorization_url(Auth.AUTH_URI, access_type='offline')
+                s = AppSession(uuid=identifier, os_version=os_version, device_hostname=device_hostname)
+                db.session.add(s)
+                db.session.commit()
                 session['oauth_state'] = state
                 session["app_id"] = identifier
-                session["device_hostname"] = device_hostname
-                session["os_version"] = os_version
                 return redirect(auth_url)
             else:
                 return "Please close the window and try again"
@@ -40,7 +41,7 @@ class RefreshAccessToken(Resource):
 
     def post(self):
         identifier = request.json["app_id"]
-        app_session: AppSession = AppSession.query.filter_by(uuid=identifier, active=True).first()
+        app_session: AppSession = AppSession.query.filter_by(uuid=identifier, active=True, authenticated=True).first()
         if app_session is not None:
             credentials = app_session.oauth2_user.credentials
             credentials = json.loads(credentials)

@@ -1,10 +1,13 @@
+import hashlib
+import os
+
 from flask import request, make_response, jsonify
 from flask_restx import Namespace, Resource
 from marshmallow import ValidationError
 
 from cultisk import db
 from cultisk.helper import openid_required, get_openid_identity
-from cultisk.Models import Password, Card, Entry
+from cultisk.Models import Password, Card, Entry, OAuth2User
 from cultisk.schema import PasswordSchema, CardSchema
 
 api = Namespace("password-manager", description="Auth related")
@@ -57,7 +60,8 @@ class PasswordDetails(Resource):
             if updated_entry is not None:
                 response_obj["data"] = password_schema.dumps(updated_entry)
             else:
-                delete_entry = Password.query.filter_by(uuid=uuid, oauth2_user_sub=user_identifier, deleted=True).first()
+                delete_entry = Password.query.filter_by(uuid=uuid, oauth2_user_sub=user_identifier,
+                                                        deleted=True).first()
                 db.session.delete(delete_entry)
                 db.session.commit()
             return response_obj
@@ -127,6 +131,7 @@ class CardDetails(Resource):
             }
             return make_response(jsonify(response_obj), 404)
 
+
 @api.route("/data/")
 class AllData(Resource):
 
@@ -147,3 +152,44 @@ class AllData(Resource):
             }
         }
         return response_obj
+
+
+@api.route('/check-password/')
+class CheckMasterPassword(Resource):
+
+    @openid_required
+    def post(self):
+        user_identifier = get_openid_identity()
+        hash_value = request.json["hash"]
+        user: OAuth2User = OAuth2User.query.filter_by(sub=user_identifier).first()
+        salt = user.master_password_hash_salt
+        dk = hashlib.pbkdf2_hmac('sha256', bytes.fromhex(hash_value), bytes.fromhex(salt), 100000)
+        if dk.hex() == user.master_password_hashed:
+            return {
+                "success": True,
+                "data": user.protected_symmetric_key
+            }
+        else:
+            return {
+                "success": False
+            }
+
+
+@api.route('/create-vault/')
+class CreateVault(Resource):
+
+    @openid_required
+    def post(self):
+        user_identifier = get_openid_identity()
+        protected_symmetric = request.json["symmetric"]
+        hash_value = request.json["hash"]
+        user: OAuth2User = OAuth2User.query.filter_by(sub=user_identifier).first()
+        salt = os.urandom(8)  # 64-bit salt
+        dk = hashlib.pbkdf2_hmac('sha256', bytes.fromhex(hash_value), salt, 100000)
+        user.master_password_hashed = dk.hex()
+        user.master_password_hash_salt = salt.hex()
+        user.protected_symmetric_key = protected_symmetric
+        db.session.commit()
+        return {
+            "success": True
+        }
