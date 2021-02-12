@@ -175,20 +175,32 @@ class CheckMasterPassword(Resource):
             }
 
 
-@api.route('/create-vault/')
+@api.route('/setup-vault/')
 class CreateVault(Resource):
+
+    @openid_required
+    def get(self):
+        user_identifier = get_openid_identity()
+        user: OAuth2User = OAuth2User.query.filter_by(sub=user_identifier).first()
+        if user.master_password_hashed is None:
+            return {"success": False}
+        else:
+            return {"success": True}
 
     @openid_required
     def post(self):
         user_identifier = get_openid_identity()
         protected_symmetric = request.json["symmetric"]
         hash_value = request.json["hash"]
+        password_hint = request.json["hint"]
         user: OAuth2User = OAuth2User.query.filter_by(sub=user_identifier).first()
         salt = os.urandom(8)  # 64-bit salt
         dk = hashlib.pbkdf2_hmac('sha256', bytes.fromhex(hash_value), salt, 100000)
         user.master_password_hashed = dk.hex()
         user.master_password_hash_salt = salt.hex()
         user.protected_symmetric_key = protected_symmetric
+        if password_hint:
+            user.master_password_hint = password_hint
         db.session.commit()
         return {
             "success": True

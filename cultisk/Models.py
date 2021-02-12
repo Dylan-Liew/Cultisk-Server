@@ -17,6 +17,7 @@ class OAuth2User(db.Model):
     master_password_hashed = db.Column(db.Text, nullable=True)
     master_password_hash_salt = db.Column(db.Text, nullable=True)
     protected_symmetric_key = db.Column(db.Text, nullable=True)
+    master_password_hint = db.Column(db.String(20), nullable=True, default=None)
 
 
 class AppSession(db.Model):
