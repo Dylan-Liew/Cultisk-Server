@@ -67,6 +67,10 @@ class AppAuthComplete(Resource):
         data = {"success": True}
         app_id = request.args.get("app_id")
         s: AppSession = AppSession.query.filter_by(uuid=app_id).first()
+        if s is None:
+            data["success"] = False
+            data["authenticated"] = False
+            return data, 401
         if s.authenticated:
             cred = s.oauth2_user.credentials
             cred = json.loads(cred)

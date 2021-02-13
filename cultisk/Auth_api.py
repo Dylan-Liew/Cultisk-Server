@@ -25,7 +25,7 @@ class Login(Resource):
             check_dup = AppSession.query.filter_by(uuid=identifier).first()
             if check_dup is None:
                 google = get_google_auth()
-                auth_url, state = google.authorization_url(Auth.AUTH_URI, access_type='offline')
+                auth_url, state = google.authorization_url(Auth.AUTH_URI, access_type='offline', prompt="consent")
                 s = AppSession(uuid=identifier, os_version=os_version, device_hostname=device_hostname)
                 db.session.add(s)
                 db.session.commit()
