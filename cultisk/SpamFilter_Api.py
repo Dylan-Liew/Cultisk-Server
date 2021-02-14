@@ -44,7 +44,6 @@ class MainFilterAPI(Resource):
                 values = {'MessageID': str(email_dict[i][3]), 'Body': email_dict[i][2], 'Sender': email_dict[i][1], 'Subject': email_dict[i][0]}
                 result_formatted.append(values)
 
-                new_test[i] = email_dict[i]
             count += 1
 
         # ER.trash_message(service)
