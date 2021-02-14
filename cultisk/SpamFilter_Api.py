@@ -51,7 +51,7 @@ class MainFilterAPI(Resource):
         response_obj = {
             "success": True,
             "data": {
-                "emails": values
+                "emails": result_formatted
             }
         }
         return response_obj
