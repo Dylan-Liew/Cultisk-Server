@@ -17,7 +17,7 @@ class MainFilterAPI(Resource):
         user_identifier = get_openid_identity()
         # service=ER.return_sevice(user_identifier)
         s_list = []
-        p_output = open('Whitelist.txt', 'r')
+        p_output = open('cultisk/whitelist.txt', 'r')
         for element in p_output.readlines():
             s_list.append(element.strip())
         p_output.close()
@@ -76,7 +76,7 @@ class WhitelistApi(Resource):
     @openid_required
     def get(self):
         whitelisted_emails = []
-        p_output = open('Whitelist.txt', 'r')
+        p_output = open('whitelist.txt', 'r')
         for element in p_output.readlines():
             whitelisted_emails.append(element.strip())
         p_output.close()
@@ -89,7 +89,7 @@ class WhitelistApi(Resource):
     @openid_required
     def post(self):
         em = input("Enter emails address not to be marked as spam: ")
-        with open('Whitelist.txt', "a") as output:
+        with open('whitelist.txt', "a") as output:
             output.write(em+'\n')
         response_obj = {
             "success": True
