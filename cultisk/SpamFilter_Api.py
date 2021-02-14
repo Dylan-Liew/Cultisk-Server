@@ -9,7 +9,7 @@ api = Namespace("spam-filter", description="Email Filter")
 
 
 @api.route("/spamfilter/")
-class MainFilter(Resource):
+class MainFilterAPI(Resource):
 
     @openid_required
     def get(self):
@@ -21,26 +21,30 @@ class MainFilter(Resource):
         for element in p_output.readlines():
             s_list.append(element.strip())
         p_output.close()
-        test = ER.getEmails(user_identifier, s_list)
+        email_dict = ER.getEmails(user_identifier, s_list)
         count = 1
         new_test = {}
-        for i in test:
-            result = MainFilter.filter(message=test[i][2])
+        for i in email_dict:
+            email_filtering = MainFilter()
+            result = email_filtering.filter(message=email_dict[i][2])
             # print("MessageID: " + str(i))
+            # What we have {'messageID': [<Subject>, <Sender>, <body>, <messageID>]
+            # What we need is [{<messageID, <body>, <Sender>, <Subject>}]
             if result == 'spam':
                 ER.trash_message(user_identifier, i)
-                print("Subject:", test[i][0])
-                print("Sender:", test[i][1])
-                print("Body:", test[i][2])
+                print("Subject:", email_dict[i][0])
+                print("Sender:", email_dict[i][1])
+                print("Body:", email_dict[i][2])
                 print("Result:", result)
                 print('Message: ' + str(count))
-                print('MessageID (in case necessary):' + str(test[i][3]))
+                print('MessageID (in case necessary):' + str(email_dict[i][3]))
                 print('========================================\n')
-                new_test[i] = test[i]
+                new_test[i] = email_dict[i]
 
-                values = {'MessageID': str(test[i][3]), 'Body': test[i][2], 'Sender': test[i][1], 'Subject': test[i][0]}
+                values = {'MessageID': str(email_dict[i][3]), 'Body': email_dict[i][2], 'Sender': email_dict[i][1], 'Subject': email_dict[i][0]}
                 result_formatted.append(values)
 
+                new_test[i] = email_dict[i]
             count += 1
 
         # ER.trash_message(service)
@@ -67,38 +71,19 @@ class Untrash(Resource):
         }
         return response_obj
 
-
-# noinspection PyUnresolvedReferences
-@app.route("/spamfilter/<messid>/")
-class EmailDetail(Resource):
-
-    @openid_required
-    def post(self,messid):
-        user_identifier = get_openid_identity()
-        mail = ER.get_one_email(user_identifier,messid)
-        mail1 = mail[messid]
-        print("Body:" + str(mail1[2]))
-        body = mail1[2]
-        response_obj = {
-            "success": True,
-            "data": body
-        }
-        return response_obj
-
-
 @app.route("/spamfilter/whitelist/")
 class WhitelistApi(Resource):
 
     @openid_required
     def get(self):
-        s_list = []
+        whitelisted_emails = []
         p_output = open('Whitelist.txt', 'r')
         for element in p_output.readlines():
-            s_list.append(element.strip())
+            whitelisted_emails.append(element.strip())
         p_output.close()
         response_obj = {
             "success": True,
-            "data": s_list
+            "data": whitelisted_emails
         }
         return response_obj
 
