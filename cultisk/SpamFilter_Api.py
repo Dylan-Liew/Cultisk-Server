@@ -13,9 +13,10 @@ class MainFilter(Resource):
 
     @openid_required
     def get(self):
+        result_formatted = []
         user_identifier = get_openid_identity()
         # service=ER.return_sevice(user_identifier)
-        s_list=[]
+        s_list = []
         p_output = open('Whitelist.txt', 'r')
         for element in p_output.readlines():
             s_list.append(element.strip())
@@ -36,12 +37,17 @@ class MainFilter(Resource):
                 print('MessageID (in case necessary):' + str(test[i][3]))
                 print('========================================\n')
                 new_test[i] = test[i]
+
+                values = {'MessageID': str(test[i][3]), 'Body': test[i][2], 'Sender': test[i][1], 'Subject': test[i][0]}
+                result_formatted.append(values)
+
             count += 1
+
         # ER.trash_message(service)
         response_obj = {
             "success": True,
             "data": {
-                "emails": new_test
+                "emails": values
             }
         }
         return response_obj
