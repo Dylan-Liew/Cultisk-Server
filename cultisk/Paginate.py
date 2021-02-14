@@ -45,7 +45,7 @@ class Pagination:
         if isinstance(query_model, type(self._db.Model)):
             # `error_out` makes it so that it doesnt throw a 404 when page_num is
             # above total page limit
-            page_obj = query_model.query.paginate(page=page_num, per_page=size, error_out=False)
+            page_obj = query_model.params.paginate(page=page_num, per_page=size, error_out=False)
         else:
             # this will be a BaseQuery instance, and so we can call paginate directly
             page_obj = query_model.paginate(page=page_num, per_page=size, error_out=False)

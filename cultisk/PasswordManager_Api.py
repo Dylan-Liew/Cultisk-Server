@@ -10,7 +10,7 @@ from cultisk.helper import openid_required, get_openid_identity
 from cultisk.Models import Password, Card, Entry, OAuth2User
 from cultisk.schema import PasswordSchema, CardSchema
 
-api = Namespace("password-manager", description="Auth related")
+api = Namespace("password-manager", description="Password manager api")
 
 
 @api.route("/passwords/")
