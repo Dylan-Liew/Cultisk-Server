@@ -4,6 +4,7 @@ import cultisk.Email_Retrieve as ER
 from cultisk import app
 from cultisk.Models import MainFilter
 from cultisk.helper import openid_required, get_openid_identity
+import cultisk.MI_model
 
 api = Namespace("spam-filter", description="Email Filter")
 

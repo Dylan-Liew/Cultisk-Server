@@ -2,7 +2,7 @@ from cultisk import app, db
 from cultisk import MI_model
 from flask import Blueprint
 from apscheduler.schedulers.background import BackgroundScheduler
-from cultisk.SpamFilter_Api import MainFilter
+from cultisk.SpamFilter_Api import MainFilterAPI
 import threading
 
 
@@ -41,7 +41,7 @@ def func3():
 
     def func2():
         lock.acquire()
-        MainFilter.get()
+        MainFilterAPI.get()
         lock.release()
 
     func1()
