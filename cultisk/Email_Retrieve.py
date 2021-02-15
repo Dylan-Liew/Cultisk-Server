@@ -44,14 +44,6 @@ def email_whitelist(namelist,addr):
 
 
 def return_sevice(user_identifier):
-    oauth2_user = OAuth2User.query.filter_by(sub=user_identifier).first()
-    cred = oauth2_user.credentials
-    cred = json.loads(cred)
-    cred = Credentials(**cred)
-    service = build('gmail', 'v1', credentials=cred)
-    return service
-
-"""
     creds = None
     # The file token.pickle contains the user access token.
     # Check if it exists
@@ -77,7 +69,15 @@ def return_sevice(user_identifier):
             pickle.dump(creds, token)
     service = build('gmail', 'v1', credentials=cred)
     return service
-"""
+
+# """
+    # oauth2_user = OAuth2User.query.filter_by(sub=user_identifier).first()
+    # cred = oauth2_user.credentials
+    # cred = json.loads(cred)
+    # cred = Credentials(**cred)
+    # service = build('gmail', 'v1', credentials=cred)
+    # return service
+# """
 
 
 def getEmails(user_id,non=None):
