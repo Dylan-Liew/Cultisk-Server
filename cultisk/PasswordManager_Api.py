@@ -31,7 +31,8 @@ class Passwords(Resource):
         db.session.add(p)
         db.session.commit()
         response_obj = {
-            "success": True
+            "success": True,
+            "data": p.uuid
         }
         return response_obj
 
@@ -45,14 +46,11 @@ class PasswordDetails(Resource):
         password_entry = Password.query.filter_by(uuid=uuid, oauth2_user_sub=user_identifier, deleted=False).first()
         password_schema = PasswordSchema(exclude=["oauth2_user"])
         post_data = request.json
-        try:
-            post_data = password_schema.load(post_data, instance=password_entry, partial=True)
-        except ValidationError as e:
-            return {"success": False, "error": str(e)}
         if password_entry is not None:
             for x in post_data:
                 setattr(password_entry, x, post_data.get(x))
             db.session.commit()
+
             updated_entry = Password.query.filter_by(uuid=uuid, oauth2_user_sub=user_identifier, deleted=False).first()
             response_obj = {
                 "success": True
@@ -81,17 +79,14 @@ class Cards(Resource):
         user_identifier = get_openid_identity()
         card_schema = CardSchema()
         post_data = request.json
-        try:
-            post_data = card_schema.load(post_data)
-        except ValidationError as e:
-            return {"success": False, "error": str(e)}
         c = Card(oauth2_user_sub=user_identifier)
         for x in post_data:
             setattr(c, x, post_data.get(x))
         db.session.add(c)
         db.session.commit()
         response_obj = {
-            "success": True
+            "success": True,
+            "data": c.uuid,
         }
         return response_obj
 
@@ -105,10 +100,6 @@ class CardDetails(Resource):
         card_entry = Card.query.filter_by(uuid=uuid, oauth2_user_sub=user_identifier, deleted=False).first()
         card_schema = CardSchema(exclude=["oauth2_user"])
         post_data = request.json
-        try:
-            post_data = card_schema.load(post_data, instance=card_entry, partial=True)
-        except ValidationError as e:
-            return {"success": False, "error": str(e)}
         if card_entry is not None:
             for x in post_data:
                 setattr(card_entry, x, post_data.get(x))
