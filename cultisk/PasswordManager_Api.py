@@ -196,3 +196,16 @@ class CreateVault(Resource):
         return {
             "success": True
         }
+
+
+@api.route('/password-hint/')
+class PasswordHint(Resource):
+
+    @openid_required
+    def get(self):
+        user_identifier = get_openid_identity()
+        user: OAuth2User = OAuth2User.query.filter_by(sub=user_identifier).first()
+        if user.master_password_hint:
+            return {"success": True, 'data': user.master_password_hint}
+        else:
+            return {"success": True, 'data': ''}
