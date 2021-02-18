@@ -111,7 +111,7 @@ class Card(Entry):
 class MainFilter:
 
     def __init__(self):
-        filename = 'efilter_model.sav'
+        filename = './cultisk/efilter_model.sav'
         self.spamEmail = {}
         self.s_list = []
         with open(filename, 'rb') as p:
@@ -136,7 +136,6 @@ class MainFilter:
     def verify(self):
         self.efilter_from_pickle.testing_accuracy()
 
-    #
     # def full_code(self,li=None):
     #     test = ER.getEmails(li)
     #     # prints out the messages

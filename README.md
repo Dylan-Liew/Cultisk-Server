@@ -15,6 +15,7 @@ The backend server for Cultisk Data security toolkit
 
 ### Technologies:
 * Python > 3.7
+* Flask Restx
 
 
 ### Developer Environment Setup
