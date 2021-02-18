@@ -2,7 +2,7 @@ from flask import request
 from flask_restx import Namespace, Resource
 
 import cultisk.MI_model
-from cultisk.MI_model import SpamFilter
+from .MI_model import SpamFilter
 import cultisk.Email_Retrieve as ER
 from cultisk import app
 from .Models import MainFilter
@@ -81,7 +81,7 @@ class WhitelistApi(Resource):
     @openid_required
     def get(self):
         whitelisted_emails = []
-        p_output = open('whitelist.txt', 'r')
+        p_output = open('./cultisk/whitelist.txt', 'r')
         for element in p_output.readlines():
             whitelisted_emails.append(element.strip())
         p_output.close()
@@ -94,9 +94,15 @@ class WhitelistApi(Resource):
     @openid_required
     def post(self):
         em = request.json["email"]
-        with open('whitelist.txt', "a") as output:
+        with open('./cultisk/whitelist.txt', "a") as output:
             output.write(em + '\n')
+        whitelisted_emails = []
+        p_output = open('./cultisk/whitelist.txt', 'r')
+        for element in p_output.readlines():
+            whitelisted_emails.append(element.strip())
+        p_output.close()
         response_obj = {
-            "success": True
+            "success": True,
+            "data": whitelisted_emails
         }
         return response_obj

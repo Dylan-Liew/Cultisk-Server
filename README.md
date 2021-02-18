@@ -28,5 +28,5 @@ This guide assumes you are using Bit 64 version of Windows.
   
 * Clone the repo and navigate to project folder
 * Run `pip install -r requirements.txt` to install dependencies
-* Add the following environment variable to the run configurations `OAUTHLIB_INSECURE_TRANSPORT=1`
+* Add the following environment variable to the run configurations `OAUTHLIB_INSECURE_TRANSPORT=1`, `PYTHONPATH=<path to ./cultisk>`
 * Run `flask run` to start server

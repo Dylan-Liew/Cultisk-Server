@@ -1,5 +1,5 @@
 import pickle
-from cultisk.MI_model import SpamFilter
+from .MI_model import SpamFilter
 from cultisk import db
 import uuid
 
@@ -117,7 +117,7 @@ class MainFilter:
             efilter_from_pickle = pickle.load(p)
         self.efilter_from_pickle = efilter_from_pickle
 
-        p_output = open('whitelist.txt', 'r')
+        p_output = open('./cultisk/whitelist.txt', 'r')
         for element in p_output.readlines():
             self.s_list.append(element.strip())
         p_output.close()
