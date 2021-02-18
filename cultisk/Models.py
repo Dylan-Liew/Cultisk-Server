@@ -1,5 +1,4 @@
 import pickle
-import cultisk.MI_model
 from cultisk.MI_model import SpamFilter
 from cultisk import db
 import uuid
