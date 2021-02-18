@@ -2,7 +2,7 @@
 /cultisk/secrets.py
 /cultisk/credentials.json
 /cultisk/efilter_model.sav
-/cultisk/SMSSpamCollection
+
 /cultisk/token.pickle
 
 /__pycache__/

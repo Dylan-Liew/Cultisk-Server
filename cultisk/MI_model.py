@@ -44,10 +44,8 @@ class SpamFilter:
 
     def classify(self,message):
         ori_message = message
-        #pattern = re.compile(r"\W")
         message = re.sub(r"\W", ' ', message)
         message = message.lower().split()
-
         p_spam_given_message = self.p_spam
         p_ham_given_message = self.p_ham
 
@@ -56,9 +54,6 @@ class SpamFilter:
                 p_spam_given_message *= self.parameters_spam[word]
             if word in self.parameters_ham:
                 p_ham_given_message *= self.parameters_ham[word]
-
-        # print('P(Spam|message):', p_spam_given_message)
-        # print('P(Ham|message):', p_ham_given_message)
 
         if p_ham_given_message > p_spam_given_message:
             print('Label: Ham(Non-Spam) Message')
