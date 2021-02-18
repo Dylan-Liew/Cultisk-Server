@@ -1,12 +1,12 @@
 from flask import request
 from flask_restx import Namespace, Resource
 
+import cultisk.MI_model
+from cultisk.MI_model import SpamFilter
 import cultisk.Email_Retrieve as ER
 from cultisk import app
 from .Models import MainFilter
 from .helper import openid_required, get_openid_identity
-import cultisk.MI_model
-from cultisk.MI_model import SpamFilter
 
 
 api = Namespace("spam-filter", description="Email Filter")
