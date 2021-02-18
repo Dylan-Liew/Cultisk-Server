@@ -1,5 +1,6 @@
 import pickle
-
+import cultisk.MI_model
+from cultisk.MI_model import SpamFilter
 from cultisk import db
 import uuid
 
@@ -14,14 +15,19 @@ class OAuth2User(db.Model):
     app_sessions = db.relationship("AppSession", back_populates="oauth2_user")
     passwords = db.relationship("Password", back_populates="oauth2_user")
     cards = db.relationship("Card", back_populates="oauth2_user")
+    master_password_hashed = db.Column(db.Text, nullable=True)
+    master_password_hash_salt = db.Column(db.Text, nullable=True)
+    protected_symmetric_key = db.Column(db.Text, nullable=True)
+    master_password_hint = db.Column(db.String(20), nullable=True, default=None)
 
 
 class AppSession(db.Model):
     __tablename__ = "app_session"
     uuid = db.Column(db.String(36), unique=True, nullable=False, primary_key=True)
-    oauth2_user_sub = db.Column(db.String(30), db.ForeignKey("oauth2_user.sub"), primary_key=True)
+    oauth2_user_sub = db.Column(db.String(30), db.ForeignKey("oauth2_user.sub"), default=None)
     oauth2_user = db.relationship("OAuth2User", back_populates="app_sessions")
     active = db.Column(db.Boolean, default=True)
+    authenticated = db.Column(db.Boolean, default=False)
     os_version = db.Column(db.String(50), nullable=False)
     device_hostname = db.Column(db.Text, nullable=False)
 
@@ -56,6 +62,7 @@ class Password(Entry):
     password = db.Column(db.Text)
     totp_secret = db.Column(db.Text, nullable=True, default=None)
     url = db.Column(db.Text, nullable=True, default=None)
+    note = db.Column(db.Text, nullable=True, default=None)
 
     __mapper_args__ = {
         'polymorphic_identity': 'password',
@@ -88,7 +95,8 @@ class Card(Entry):
         'polymorphic_identity': 'card',
     }
 
-    def __init__(self, oauth2_user_sub, name=None, brand=None, number=None, ccv=None, expiry_month=None, expiry_year=None):
+    def __init__(self, oauth2_user_sub, name=None, brand=None, number=None, ccv=None, expiry_month=None,
+                 expiry_year=None):
         unique_id = str(uuid.uuid4())
         super(Card, self).__init__(name, unique_id, "card")
         self.oauth2_user_sub = oauth2_user_sub
@@ -103,14 +111,14 @@ class Card(Entry):
 class MainFilter:
 
     def __init__(self):
-        filename = 'efilter_model.sav'
+        filename = './cultisk/efilter_model.sav'
         self.spamEmail = {}
         self.s_list = []
         with open(filename, 'rb') as p:
             efilter_from_pickle = pickle.load(p)
         self.efilter_from_pickle = efilter_from_pickle
 
-        p_output = open('Whitelist.txt', 'r')
+        p_output = open('whitelist.txt', 'r')
         for element in p_output.readlines():
             self.s_list.append(element.strip())
         p_output.close()
@@ -121,14 +129,13 @@ class MainFilter:
         return self.efilter_from_pickle.classify(message)
 
     # NOTE:does NOT save the new spam message into SMSSpamCollection file
-    def filter_test(self,message):
+    def filter_test(self, message):
         result = self.efilter_from_pickle.classify_test_set(message)
         return result
 
     def verify(self):
         self.efilter_from_pickle.testing_accuracy()
 
-    #
     # def full_code(self,li=None):
     #     test = ER.getEmails(li)
     #     # prints out the messages

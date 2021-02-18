@@ -1,100 +1,99 @@
+from flask import request
 from flask_restx import Namespace, Resource
 
 import cultisk.Email_Retrieve as ER
 from cultisk import app
-from cultisk.Models import MainFilter
-from cultisk.helper import openid_required, get_openid_identity
+from .Models import MainFilter
+from .helper import openid_required, get_openid_identity
+import cultisk.MI_model
 
 api = Namespace("spam-filter", description="Email Filter")
 
 
-@api.route("/spamfilter/")
-class MainFilter(Resource):
+@api.route("/")
+class MainFilterAPI(Resource):
 
     @openid_required
     def get(self):
+        result_formatted = []
         user_identifier = get_openid_identity()
         # service=ER.return_sevice(user_identifier)
-        test = ER.getEmails(user_identifier)
+        s_list = []
+        p_output = open('cultisk/whitelist.txt', 'r')
+        for element in p_output.readlines():
+            s_list.append(element.strip())
+        p_output.close()
+        email_dict = ER.getEmails(user_identifier, s_list)
         count = 1
         new_test = {}
-        for i in test:
-            result = MainFilter.filter(message=test[i][2])
+        for i in email_dict:
+            email_filtering = MainFilter()
+            result = email_filtering.filter(message=email_dict[i][2])
             # print("MessageID: " + str(i))
+            # What we have {'messageID': [<Subject>, <Sender>, <body>, <messageID>]
+            # What we need is [{<messageID, <body>, <Sender>, <Subject>}]
             if result == 'spam':
                 ER.trash_message(user_identifier, i)
-                print("Subject:", test[i][0])
-                print("Sender:", test[i][1])
-                print("Body:", test[i][2])
+                print("Subject:", email_dict[i][0])
+                print("Sender:", email_dict[i][1])
+                print("Body:", email_dict[i][2])
                 print("Result:", result)
                 print('Message: ' + str(count))
+                print('MessageID (in case necessary):' + str(email_dict[i][3]))
                 print('========================================\n')
-                new_test[i] = test[i]
+                new_test[i] = email_dict[i]
+
+                values = {'message_id': str(email_dict[i][3]), 'body': email_dict[i][2], 'sender': email_dict[i][1],
+                          'subject': email_dict[i][0]}
+                result_formatted.append(values)
+
             count += 1
+
         # ER.trash_message(service)
         response_obj = {
             "success": True,
-            "data": {
-                "emails": new_test
-            }
+            "data": new_test
         }
+        print(response_obj)
         return response_obj
 
 
 # call the api to remove the email from spam folder
 # noinspection PyUnresolvedReferences
-@api.route("/spamfilter/untrash/<messid>")
+@api.route("/untrash/<messid>")
 class Untrash(Resource):
 
     @openid_required
-    def post(self,messid):
+    def post(self, messid):
         user_identifier = get_openid_identity()
-        ER.untrash_message(user_identifier,messid)
+        ER.untrash_message(user_identifier, messid)
         response_obj = {
             "success": True,
         }
         return response_obj
 
 
-# noinspection PyUnresolvedReferences
-@app.route("/spamfilter/<messid>/")
-class EmailDetail(Resource):
-
-    @openid_required
-    def post(self,messid):
-        user_identifier = get_openid_identity()
-        mail = ER.get_one_email(user_identifier,messid)
-        mail1 = mail[messid]
-        print("Body:" + str(mail1[2]))
-        body = mail1[2]
-        response_obj = {
-            "success": True,
-            "data": body
-        }
-        return response_obj
-
-
-@app.route("/spamfilter/whitelist/")
+@app.route("/whitelist/")
 class WhitelistApi(Resource):
 
     @openid_required
     def get(self):
-        s_list = []
-        p_output = open('Whitelist.txt', 'r')
+        whitelisted_emails = []
+        p_output = open('whitelist.txt', 'r')
         for element in p_output.readlines():
-            s_list.append(element.strip())
+            whitelisted_emails.append(element.strip())
         p_output.close()
         response_obj = {
             "success": True,
-            "data": s_list
+            "data": whitelisted_emails
         }
         return response_obj
 
     @openid_required
     def post(self):
-        em = input("Enter emails address not to be marked as spam: ")
-        with open('Whitelist.txt', "a") as output:
-            output.write(em+'\n')
+        em = request.json["email"]
+        with open('whitelist.txt', "a") as output:
+            output.write(em + '\n')
         response_obj = {
             "success": True
         }

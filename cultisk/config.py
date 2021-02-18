@@ -15,6 +15,12 @@ class Auth:
     USER_INFO = "https://www.googleapis.com/userinfo/v2/me"
 
 
+class HIBP:
+    API_KEY = "***REMOVED***"
+    BASE_URL_ACCOUNT = "https://haveibeenpwned.com/api/v3"
+    BASE_URL_PASSWORD = "https://api.pwnedpasswords.com/range"
+
+
 class Config:
     APP_NAME = "Cultisk"
     SECRET_KEY = os.environ.get("SECRET_KEY") or "5791628bb0b13ce0c676dfde280ba245"

@@ -25,9 +25,11 @@ from cultisk.Callbacks import api as callbacks
 from cultisk.PasswordManager_Api import api as password_manager_api
 from cultisk.Settings_api import api as settings_api
 from cultisk.SpamFilter_Api import api as spam_filter_api
+from cultisk.DarkWebScanner_Api import api as dark_web_scanner_api
 
 api.add_namespace(auth_api)
 api.add_namespace(callbacks)
 api.add_namespace(password_manager_api)
 api.add_namespace(settings_api)
 api.add_namespace(spam_filter_api)
+api.add_namespace(dark_web_scanner_api)

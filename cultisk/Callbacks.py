@@ -51,12 +51,9 @@ class GoogleCallback(Resource):
                 oauth_user.token = token["id_token"]
                 db.session.add(oauth_user)
                 db.session.commit()
-                c_session = AppSession()
-                c_session.uuid = session["app_id"]
-                c_session.os_version = session["os_version"]
+                c_session: AppSession = AppSession.query.filter_by(uuid=session["app_id"]).first()
                 c_session.oauth2_user_sub = decoded_token["sub"]
-                c_session.device_hostname = session["device_hostname"]
-                db.session.add(c_session)
+                c_session.authenticated = True
                 db.session.commit()
                 return make_response(render_template("auth_done.html", error=False), 200)
             else:
@@ -73,12 +70,8 @@ class AppAuthComplete(Resource):
         if s is None:
             data["success"] = False
             data["authenticated"] = False
-            return data, 404
-        elif s.oauth2_user.token is None:
-            data["success"] = False
-            data["authenticated"] = False
             return data, 401
-        else:
+        if s.authenticated:
             cred = s.oauth2_user.credentials
             cred = json.loads(cred)
             _, token = refresh_g_access_token(cred)
@@ -86,5 +79,9 @@ class AppAuthComplete(Resource):
             data["jwt"] = token
             data["guser_id"] = s.oauth2_user.sub
             return data
+        else:
+            data["success"] = False
+            data["authenticated"] = False
+            return data, 401
 
 
