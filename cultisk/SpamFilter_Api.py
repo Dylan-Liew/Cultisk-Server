@@ -1,3 +1,4 @@
+from flask import request
 from flask_restx import Namespace, Resource
 
 import cultisk.Email_Retrieve as ER
@@ -90,7 +91,7 @@ class WhitelistApi(Resource):
 
     @openid_required
     def post(self):
-        em = input("Enter emails address not to be marked as spam: ")
+        em = request.json["email"]
         with open('whitelist.txt', "a") as output:
             output.write(em + '\n')
         response_obj = {
