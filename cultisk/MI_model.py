@@ -61,13 +61,13 @@ class SpamFilter:
         # print('P(Ham|message):', p_ham_given_message)
 
         if p_ham_given_message > p_spam_given_message:
-            #print('Label: Ham(Non-Spam) Message')
+            print('Label: Ham(Non-Spam) Message')
             return 'ham'
 
         elif p_ham_given_message < p_spam_given_message:
             file_object = open('SMSSpamCollection', 'a')
             new_message = '\nspam\t' + ori_message
-            print(new_message)
+            #print(new_message)
             file_object.write(new_message)
             file_object.close()
             print('Label: Spam Message')
